@@ -3,7 +3,6 @@ from inventree.part import Part
 import re
 from dotenv import load_dotenv
 import os
-import time
 
 load_dotenv()
 
