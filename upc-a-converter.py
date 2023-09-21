@@ -23,10 +23,11 @@ parts = Part.list(inventree_api)
 sorted_parts = sorted(parts, key=lambda part: part.IPN)
 
 for index, part in enumerate(sorted_parts, start=1):
-    upc_a = part.IPN  # Change variable name to upc_a
+    # Get the UPC-A code from the Part object
+    upc_a = part.IPN
 
-    # Check if the UPC-A code has 11 digits
-    if len(upc_a) == 11:
+    # Check if the UPC-A code has 11 digits and is not already correct
+    if len(upc_a) == 11 and not re.match(r'^\d{12}$', upc_a):
         total_sum = 0
 
         # Calculate the UPC-A checksum
@@ -45,31 +46,31 @@ for index, part in enumerate(sorted_parts, start=1):
         # Print the corrected UPC-A code
         print(f"Corrected UPC-A: {complete_upc_a}")
 
-    # Check if the UPC-A code has 12 digits
-    elif len(upc_a) == 12:
-        # If the IPN is already 12 digits, validate it and calculate the checksum
-        if re.match(r'^\d{12}$', upc_a):
-            total_sum = 0
+    # Check if the UPC-A code has 12 digits and is not already correct
+    elif len(upc_a) == 12 and not re.match(r'^\d{12}$', upc_a):
+        total_sum = 0
 
-            # Calculate the UPC-A checksum
-            for i in range(0, 11):
-                digit = int(upc_a[i])
-                total_sum += digit * (3 if i % 2 == 0 else 1)
+        # Calculate the UPC-A checksum
+        for i in range(0, 11):
+            digit = int(upc_a[i])
+            total_sum += digit * (3 if i % 2 == 0 else 1)
 
-            upc_a_checksum = (10 - (total_sum % 10)) % 10
+        upc_a_checksum = (10 - (total_sum % 10)) % 10
 
-            # Calculate the complete UPC-A code
-            complete_upc_a = upc_a[:11] + str(upc_a_checksum)
+        # Calculate the complete UPC-A code
+        complete_upc_a = upc_a[:11] + str(upc_a_checksum)
 
-            # Update the IPN field of the Part object with the new UPC-A code
-            part.save(data={"IPN": complete_upc_a})
+        # Update the IPN field of the Part object with the new UPC-A code
+        part.save(data={"IPN": complete_upc_a})
 
-            # Print the original and corrected UPC-A codes
-            print(
-                f"Original UPC-A: {upc_a} - Corrected UPC-A: {complete_upc_a}")
+        # Print the original and corrected UPC-A codes
+        print(f"Original UPC-A: {upc_a} - Corrected UPC-A: {complete_upc_a}")
 
-        else:
-            print("The UPC-A code must have exactly 11 or 12 valid digits")
-
+    # If the UPC-A code is already correct or doesn't meet the length criteria, print a message
     else:
-        print("The UPC-A code must have exactly 11 or 12 valid digits")
+        if len(upc_a) == 11:
+            print(
+                f"Skipping UPC-A code {upc_a} as it is already correct (11 digits)")
+        elif len(upc_a) == 12:
+            print(
+                f"Skipping UPC-A code {upc_a} as it doesn't meet the length criteria (12 digits)")
